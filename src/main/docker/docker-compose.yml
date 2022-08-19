@@ -1,0 +1,51 @@
+version: '3.9'
+services:
+  web:
+    image: srv-authorization:latest
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/authorization
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - DISCOVERY_URI=http://srv-discovery:8761/eureka
+      - AUTH_URI=http://srv-authorization:9000
+    networks:
+#      - schambeck-overlay
+      - schambeck-bridge
+      - backend
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 384M
+        reservations:
+          memory: 256M
+    ports:
+      - "9000:9000"
+  db:
+    image: 'postgres:12.9-alpine'
+    networks:
+      - schambeck-bridge
+      - backend
+    environment:
+      - POSTGRES_DB=authorization
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  haproxy:
+    image: haproxytech/haproxy-alpine:latest
+    container_name: srv-authorization-haproxy
+    hostname: srv-authorization
+    networks:
+#      - schambeck-overlay
+      - schambeck-bridge
+      - backend
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "4040:80"
+      - "8444:8404"
+networks:
+  schambeck-bridge:
+    external: true
+#  schambeck-overlay:
+#    external: true
+#  backend: {}
