@@ -8,6 +8,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=postgres
       - DISCOVERY_URI=http://srv-discovery:8761/eureka
       - AUTH_URI=http://srv-authorization:9000
+      - SPRING_SQL_INIT_MODE=always
     networks:
 #      - schambeck-overlay
       - schambeck-bridge
