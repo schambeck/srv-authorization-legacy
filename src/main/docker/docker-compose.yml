@@ -2,13 +2,23 @@ version: '3.9'
 services:
   web:
     image: srv-authorization:latest
+    restart: always
+    hostname: srv-authorization
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/authorization
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_FLYWAY_URL=jdbc:postgresql://db:5432/authorization
+      - SPRING_FLYWAY_USER=postgres
+      - SPRING_FLYWAY_PASSWORD=postgres
       - DISCOVERY_URI=http://srv-discovery:8761/eureka
       - AUTH_URI=http://srv-authorization:9000
       - SPRING_SQL_INIT_MODE=always
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_VIRTUAL_HOST=
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
     networks:
 #      - schambeck-overlay
       - schambeck-bridge
@@ -24,8 +34,8 @@ services:
       - "9000:9000"
   db:
     image: 'postgres:12.9-alpine'
+    restart: always
     networks:
-      - schambeck-bridge
       - backend
     environment:
       - POSTGRES_DB=authorization
@@ -33,6 +43,7 @@ services:
       - POSTGRES_PASSWORD=postgres
   haproxy:
     image: haproxytech/haproxy-alpine:latest
+    restart: always
     container_name: srv-authorization-haproxy
     hostname: srv-authorization
     networks:
@@ -44,9 +55,11 @@ services:
     ports:
       - "4040:80"
       - "8444:8404"
+    deploy:
+      replicas: 0
 networks:
   schambeck-bridge:
     external: true
 #  schambeck-overlay:
 #    external: true
-#  backend: {}
+  backend: {}
